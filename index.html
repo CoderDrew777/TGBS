@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memecoin Trading with Phantom Wallet</title>
+    <script src="https://unpkg.com/@solana/web3.js@1.24.0/dist/index.iife.js"></script>
+</head>
+<body>
+    <h2>Memecoin Trading with Phantom Wallet</h2>
+    <button id="connectButton">Connect Phantom Wallet</button>
+    <button id="tradeButton" style="display:none;">Trade</button>
+    <p id="coinName"></p>
+
+    <script>
+        // Get the coin name from the URL query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const coin = urlParams.get('coin');
+        document.getElementById('coinName').innerText = "Trading: " + coin;
+
+        let connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
+        let provider;
+        const connectButton = document.getElementById("connectButton");
+        const tradeButton = document.getElementById("tradeButton");
+
+        connectButton.addEventListener('click', async () => {
+            if (window.solana) {
+                provider = window.solana;
+                await provider.connect(); // Connect Phantom Wallet
+                console.log("Connected to Phantom Wallet:", provider.publicKey.toString());
+
+                tradeButton.style.display = 'inline'; // Show the "Trade" button after connecting
+            } else {
+                alert('Please install Phantom Wallet extension!');
+            }
+        });
+
+        tradeButton.addEventListener('click', async () => {
+            if (provider) {
+                const transaction = new solanaWeb3.Transaction().add(
+                    solanaWeb3.SystemProgram.transfer({
+                        fromPubkey: provider.publicKey,
+                        toPubkey: 'RecipientPublicKeyHere',  // Replace with actual recipient address
+                        lamports: 1000000000,  // Example: 1 SOL (in lamports)
+                    })
+                );
+
+                const signature = await provider.signTransaction(transaction);
+                const txid = await connection.sendRawTransaction(signature.serialize());
+                console.log('Transaction sent:', txid);
+                alert('Transaction sent! TXID: ' + txid);
+            } else {
+                alert('Please connect Phantom Wallet first!');
+            }
+        });
+    </script>
+</body>
+</html>
